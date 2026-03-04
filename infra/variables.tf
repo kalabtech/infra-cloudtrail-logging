@@ -7,7 +7,7 @@ variable "aws_profile" {
 
 variable "project" {
   type    = string
-  default = "Infra-Multienv"
+  default = "Infra-Cloudtrail-Logging"
 }
 
 variable "environment" {
