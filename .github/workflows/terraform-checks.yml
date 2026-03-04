@@ -6,12 +6,13 @@ on:
     paths:
       - 'infra/**'
       - 'modules/**'
+      
   pull_request:
     branches: [dev, main]
     paths:
       - 'infra/**'
       - 'modules/**'
-      
+
 permissions:
   id-token: write
   contents: read
@@ -71,6 +72,9 @@ jobs:
 
         - name: gitleaks
           uses: gitleaks/gitleaks-action@v2
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
   checkov:
     name: Checkov
