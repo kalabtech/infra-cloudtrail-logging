@@ -1,0 +1,28 @@
+{
+    "name": "infra-multienv",
+    "build": { "dockerfile": "Dockerfile" },
+    //Added to avoid architecture conflicts if using emulation
+    "runArgs": ["--platform", "linux/arm64"],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode-remote.remote-containers",
+                "ms-azuretools.vscode-containers",
+                "hashicorp.terraform",
+                "amazonwebservices.aws-toolkit-vscode",
+                "streetsidesoftware.code-spell-checker",
+                "ms-vscode.makefile-tools",
+                "yzhang.markdown-all-in-one",
+                "eamodio.gitlens",
+                "github.vscode-pull-request-github",
+                "github.vscode-github-actions"
+            ]
+        }
+    },
+    "mounts": [
+        "source=${localEnv:HOME}/.aws,target=/home/vscode/.aws,type=bind"
+    ],
+    "remoteUser": "vscode",
+    "containerUser": "vscode",
+    "postCreateCommand": "tfenv install latest && tfenv use latest"
+}

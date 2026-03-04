@@ -1,0 +1,94 @@
+# # .github/workflows/terraform-checks.yml
+# name: Terraform Checks
+
+# on:
+#   push:
+#     paths:
+#       - 'infra/**'
+#       - 'modules/**'
+
+# permissions:
+#   id-token: write
+#   contents: read
+
+# jobs:
+#   validate:
+#       name: Validate
+#       runs-on: ubuntu-latest
+#       steps:
+#         - name: Checkout
+#           uses: actions/checkout@v4
+
+#         - name: Setup Terraform
+#           uses: hashicorp/setup-terraform@v3
+
+#         - name: Terraform Init
+#           run: terraform -chdir=infra init -backend=false
+
+#         - name: Terraform Validate
+#           run: terraform -chdir=infra validate
+
+#   fmt:
+#     name: Format
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
+
+#       - name: Setup Terraform
+#         uses: hashicorp/setup-terraform@v3
+
+#       - name: Terraform Format
+#         working-directory: infra
+#         run: terraform fmt -recursive
+
+#   tflint:
+#       name: Lint
+#       runs-on: ubuntu-latest
+#       steps:
+#         - name: Checkout
+#           uses: actions/checkout@v4
+
+#         - name: tflint
+#           uses: terraform-linters/setup-tflint@v4
+
+#         - name: Run tflint
+#           run: tflint --chdir=infra
+
+#   gitleaks:
+#       name: Secrets
+#       runs-on: ubuntu-latest
+#       steps:
+#         - name: Checkout
+#           uses: actions/checkout@v4
+#           with:
+#             fetch-depth: 0
+
+#         - name: gitleaks
+#           uses: gitleaks/gitleaks-action@v2
+
+#   checkov:
+#     name: Checkov
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
+
+#       - name: checkov
+#         uses: bridgecrewio/checkov-action@v12
+#         with:
+#           directory: infra
+#           soft_fail: true
+          
+#   tfsec:
+#     name: tfsec
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
+
+#       - name: tfsec
+#         uses: aquasecurity/tfsec-action@v1.0.0
+#         with:
+#           working_directory: infra
+#           soft_fail: true

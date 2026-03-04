@@ -1,0 +1,114 @@
+# name: Terraform Apply
+
+# on:
+#   push:
+#     branches:
+#       - dev
+#       - main
+      
+# jobs:
+#   apply-dev:
+#     name: Apply Dev
+#     runs-on: ubuntu-latest
+#     if: github.ref == 'refs/heads/dev'
+#     environment: dev
+#     env:
+#       TF_VAR_environment: dev
+#     permissions:
+#       id-token: write
+#       contents: read
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
+
+#       - name: Configure AWS Credentials
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           role-to-assume: ${{ secrets.AWS_DEV_ROLE_APPLY }}
+#           aws-region: ${{ secrets.AWS_REGION }}
+
+#       - name: Mask AWS Account ID
+#         run: |
+#           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+#           echo "::add-mask::$ACCOUNT_ID"
+
+#       - name: Setup Terraform
+#         uses: hashicorp/setup-terraform@v3
+
+#       - name: Terraform Init
+#         working-directory: infra
+#         env:
+#           TF_CLI_ARGS_init: >-
+#             -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}"
+#             -backend-config="key=${{ secrets.TF_STATE_KEY_DEV }}"
+#             -backend-config="region=${{ secrets.AWS_REGION }}"
+#             -backend-config="kms_key_id=${{ secrets.TF_STATE_KMS_KEY }}"
+#             -backend-config="use_lockfile=true"
+#         run: terraform init > /dev/null
+
+#       - name: Terraform Plan
+#         working-directory: infra
+#         id: plan
+#         run: terraform plan -input=false -out=dev.tfplan > /dev/null
+
+#       - name: Terraform Apply
+#         working-directory: infra
+#         run: terraform apply -auto-approve dev.tfplan > /dev/null
+
+#       - name: Cleanup sensitive files
+#         if: always()
+#         working-directory: infra
+#         run: rm -f prod.tfplan
+
+#   apply-prod:
+#     name: Apply Prod
+#     runs-on: ubuntu-latest
+#     if: github.ref == 'refs/heads/main'
+#     environment: prod
+#     env:
+#       TF_VAR_environment: prod
+#     permissions:
+#       id-token: write
+#       contents: read
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
+
+#       - name: Configure AWS Credentials
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           role-to-assume: ${{ secrets.AWS_PROD_ROLE_APPLY }}
+#           aws-region: ${{ secrets.AWS_REGION }}
+
+#       - name: Setup Terraform
+#         uses: hashicorp/setup-terraform@v3
+
+#       - name: Mask AWS Account ID
+#         run: |
+#           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+#           echo "::add-mask::$ACCOUNT_ID"
+
+#       - name: Terraform Init
+#         working-directory: infra
+#         env:
+#           TF_CLI_ARGS_init: >-
+#             -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}"
+#             -backend-config="key=${{ secrets.TF_STATE_KEY_PROD }}"
+#             -backend-config="region=${{ secrets.AWS_REGION }}"
+#             -backend-config="kms_key_id=${{ secrets.TF_STATE_KMS_KEY }}"
+#             -backend-config="use_lockfile=true"
+#         run: terraform init > /dev/null
+
+#       - name: Terraform Plan
+#         working-directory: infra
+#         id: plan
+#         run: terraform plan -input=false -out=prod.tfplan > /dev/null
+
+#       - name: Terraform Apply
+#         working-directory: infra
+#         run: terraform apply -auto-approve prod.tfplan > /dev/null
+
+#       - name: Cleanup sensitive files
+#         if: always()
+#         working-directory: infra
+#         run: rm -f prod.tfplan
