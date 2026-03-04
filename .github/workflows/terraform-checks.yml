@@ -6,7 +6,12 @@ on:
     paths:
       - 'infra/**'
       - 'modules/**'
-
+  pull_request:
+    branches: [dev, main]
+    paths:
+      - 'infra/**'
+      - 'modules/**'
+      
 permissions:
   id-token: write
   contents: read
