@@ -121,6 +121,7 @@ checktf: ## Format and validate Terraform code
 	@terraform fmt -recursive $(MOD_DIR)
 	@echo "Validating code..."
 	@cd $(TF_DIR) && terraform validate
+	@cd $(MOD_DIR) && terraform validate
 
 check: ## Linting and syntax validation
 	@echo "Running TFLint..."
