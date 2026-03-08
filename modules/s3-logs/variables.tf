@@ -13,9 +13,3 @@ variable "aws_account_id" {
   type        = string
   sensitive   = true
 }
-
-variable "tags" {
-  description = "Common tags"
-  type        = map(string)
-  default     = {}
-}

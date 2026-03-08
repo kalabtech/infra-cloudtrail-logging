@@ -26,9 +26,9 @@ define AWS_IDENTITY
 endef
 
 define TFPLAN_SUMMARY
-	@chmod u+x scripts/tf-plan-summary.sh
-	@./scripts/tf-plan-summary.sh $(TF_DIR)/$(STATE_FILE)
-	@chmod u-x scripts/tf-plan-summary.sh
+	@chmod u+x scripts/tfplan_summary.sh
+	@./scripts/tfplan_summary.sh $(TF_DIR)/$(STATE_FILE)
+	@chmod u-x scripts/tfplan_summary.sh
 endef
 
 # --- GUARDS ---

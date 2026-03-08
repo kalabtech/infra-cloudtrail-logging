@@ -17,7 +17,7 @@ data "aws_iam_policy_document" "kms_cloudtrail" {
     effect = "Allow"
     principals {
       type        = "Service"
-      identifiers = ["cloudtrail.amazon.com"]
+      identifiers = ["cloudtrail.amazonaws.com"]
     }
     actions = [
       "kms:GenerateDataKey",
@@ -33,24 +33,17 @@ resource "aws_kms_key" "this" {
   enable_key_rotation     = true
 
   policy = data.aws_iam_policy_document.kms_cloudtrail.json
-
-  tags = merge(var.tags, {
-    Environment = var.environment
-  })
 }
 
 resource "aws_kms_alias" "this" {
-  name          = "alias/${var.project_name}-cloudtrail-${var.environment}"
+  name          = lower("alias/${var.project_name}-cloudtrail-${var.environment}")
   target_key_id = aws_kms_key.this.key_id
 }
 
 resource "aws_s3_bucket" "this" {
-  bucket = "${var.project_name}-cloudtrail-logs-${var.environment}"
-
-  tags = merge(var.tags, {
-    Environment = var.environment
-  })
+  bucket = lower("${var.project_name}-cloudtrail-logs-${var.environment}")
 }
+
 resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
   bucket = aws_s3_bucket.this.id
 
@@ -78,7 +71,7 @@ data "aws_iam_policy_document" "s3_cloudtrail" {
     effect = "Allow"
     principals {
       type        = "Service"
-      identifiers = ["cloudtrail.amazon.com"]
+      identifiers = ["cloudtrail.amazonaws.com"]
     }
     actions   = ["s3:PutObject"]
     resources = ["${aws_s3_bucket.this.arn}/AWSLogs/${var.aws_account_id}/*"]
@@ -133,6 +126,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "this" {
   rule {
     id     = "cloudtrail-lifecycle"
     status = "Enabled"
+
+    filter {}
 
     transition {
       days          = 30

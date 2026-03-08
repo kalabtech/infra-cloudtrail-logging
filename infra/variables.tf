@@ -5,18 +5,26 @@ variable "aws_profile" {
   default     = null
 }
 
-variable "project" {
-  type    = string
-  default = "Infra-Cloudtrail-Logging"
+variable "project_name" {
+  description = "Project name"
+  type        = string
+  default     = "Infra-Cloudtrail-Logging"
 }
 
 # tflint-ignore: terraform_unused_declarations
 variable "environment" {
-  type = string
+  description = "Environment name (dev/prod)"
+  type        = string
 }
 
 variable "aws_region" {
   description = "AWS Region for provider"
   type        = string
   default     = "eu-west-1"
+}
+
+variable "aws_account_id" {
+  description = "AWS Account ID"
+  type        = string
+  sensitive   = true
 }
