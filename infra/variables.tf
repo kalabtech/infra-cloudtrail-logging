@@ -10,6 +10,7 @@ variable "project" {
   default = "Infra-Cloudtrail-Logging"
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "environment" {
   type = string
 }
@@ -19,4 +20,3 @@ variable "aws_region" {
   type        = string
   default     = "eu-west-1"
 }
-

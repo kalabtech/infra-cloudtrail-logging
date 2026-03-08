@@ -6,7 +6,7 @@ on:
     paths:
       - 'infra/**'
       - 'modules/**'
-      
+
   pull_request:
     branches: [dev, main]
     paths:
@@ -88,7 +88,7 @@ jobs:
         with:
           directory: infra
           soft_fail: true
-          
+
   tfsec:
     name: tfsec
     runs-on: ubuntu-latest

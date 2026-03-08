@@ -21,4 +21,3 @@ Title Ex: [SECURITY]: Implement S3 Bucket Policy for Least Privilege
 ## Expected Outcome (Ex: encryption KMS/S3 )
 - AWS CLI command get-bucket-encryption confirms AES256 or aws:kms is active.
 - Objects uploaded without encryption headers are automatically encrypted by the bucket policy.
-
