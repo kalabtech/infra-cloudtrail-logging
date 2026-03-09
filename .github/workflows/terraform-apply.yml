@@ -48,11 +48,21 @@ jobs:
 
       - name: Terraform Plan
         working-directory: infra
+        env:
+          TF_VAR_environment: ${{ vars.TF_VAR_environment }}
+          TF_VAR_project_name: ${{ vars.TF_VAR_project_name }}
+          TF_VAR_aws_region: ${{ vars.TF_VAR_aws_region }}
+          TF_VAR_aws_account_id: ${{ secrets.TF_VAR_aws_account_id }}
         id: plan
         run: terraform plan -input=false -out=dev.tfplan > /dev/null
 
       - name: Terraform Apply
         working-directory: infra
+        env:
+          TF_VAR_environment: ${{ vars.TF_VAR_environment }}
+          TF_VAR_project_name: ${{ vars.TF_VAR_project_name }}
+          TF_VAR_aws_region: ${{ vars.TF_VAR_aws_region }}
+          TF_VAR_aws_account_id: ${{ secrets.TF_VAR_aws_account_id }}
         run: terraform apply -auto-approve dev.tfplan > /dev/null
 
       - name: Cleanup sensitive files
@@ -101,11 +111,21 @@ jobs:
 
       - name: Terraform Plan
         working-directory: infra
+        env:
+          TF_VAR_environment: ${{ vars.TF_VAR_environment }}
+          TF_VAR_project_name: ${{ vars.TF_VAR_project_name }}
+          TF_VAR_aws_region: ${{ vars.TF_VAR_aws_region }}
+          TF_VAR_aws_account_id: ${{ secrets.TF_VAR_aws_account_id }}
         id: plan
         run: terraform plan -input=false -out=prod.tfplan > /dev/null
 
       - name: Terraform Apply
         working-directory: infra
+        env:
+          TF_VAR_environment: ${{ vars.TF_VAR_environment }}
+          TF_VAR_project_name: ${{ vars.TF_VAR_project_name }}
+          TF_VAR_aws_region: ${{ vars.TF_VAR_aws_region }}
+          TF_VAR_aws_account_id: ${{ secrets.TF_VAR_aws_account_id }}
         run: terraform apply -auto-approve prod.tfplan > /dev/null
 
       - name: Cleanup sensitive files
