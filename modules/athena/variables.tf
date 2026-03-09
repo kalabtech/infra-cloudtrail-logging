@@ -12,3 +12,8 @@ variable "s3_bucket_id" {
   description = "S3 bucket ID where CloudTrail logs are stored"
   type        = string
 }
+
+variable "kms_key_arn" {
+  description = "KMS key ARN — used to encrypt Athena query results"
+  type        = string
+}
