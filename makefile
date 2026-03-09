@@ -57,7 +57,7 @@ require-env:
 	fi
 
 .PHONY: all verify-identity check-env require-env init plan apply destroy \
-        resources show state output checktf check security prec prec-all docs help
+        resources show state output validate check prec prec-all docs help
 
 # Default action
 all: security checktf plan
@@ -115,7 +115,7 @@ output: check-env ## Show tfstate outputs — make output ENV=dev
 # QUALITY AND SECURITY
 # =============================================================================
 
-checktf: ## Format and validate Terraform code
+validate: ## Format and validate Terraform code
 	@echo "Formatting code..."
 	@terraform fmt -recursive $(TF_DIR)
 	@terraform fmt -recursive $(MOD_DIR)
@@ -123,15 +123,19 @@ checktf: ## Format and validate Terraform code
 	@cd $(TF_DIR) && terraform validate
 	@cd $(MOD_DIR) && terraform validate
 
-check: ## Linting and syntax validation
+check: ## Security scan infra and modules
+	@echo "-----------------------"
 	@echo "Running TFLint..."
-	@tflint --chdir=$(TF_DIR) --init
-	@tflint --chdir=$(TF_DIR)
-
-security: ## Security scan infra and modules
+	@tflint --chdir=$(TF_DIR) --config=$(CURDIR)/.tflint.hcl
+	@tflint --chdir=$(MOD_DIR) --recursive --config=$(CURDIR)/.tflint.hcl
+	@echo "-----------------------"
 	@echo "Scanning for vulnerabilities..."
-	@trivy config $(TF_DIR)
-	@trivy config $(MOD_DIR)
+	@trivy config --severity MEDIUM,HIGH,CRITICAL $(TF_DIR)
+	@trivy config --severity MEDIUM,HIGH,CRITICAL $(MOD_DIR)
+
+lint-init: ## Install tflint plugins (run once or after updating .tflint.hcl)
+	tflint --init --chdir=$(TF_DIR)
+	tflint --init --chdir=$(MOD_DIR)
 
 # =============================================================================
 # PRE-COMMIT

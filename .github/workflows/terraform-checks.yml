@@ -44,17 +44,22 @@ jobs:
         run: terraform fmt -recursive
 
   tflint:
-      name: Lint
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v4
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-        - name: tflint
-          uses: terraform-linters/setup-tflint@v4
+      - name: Setup tflint
+        uses: terraform-linters/setup-tflint@v4
 
-        - name: Run tflint
-          run: tflint --chdir=infra
+      - name: Init tflint
+        run: tflint --init --chdir=infra
+
+      - name: Run tflint
+        run: |
+          tflint --chdir=infra --config=$GITHUB_WORKSPACE/.tflint.hcl
+          tflint --chdir=modules --recursive --config=$GITHUB_WORKSPACE/.tflint.hcl
 
   gitleaks:
       name: Secrets
@@ -83,5 +88,5 @@ jobs:
         with:
           scan-type: 'config'
           scan-ref: '.'
-          severity: 'HIGH,CRITICAL'
+          severity: 'MEDIUM,HIGH,CRITICAL'
           exit-code: '1'
