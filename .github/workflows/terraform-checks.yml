@@ -4,9 +4,6 @@ name: Terraform Checks
 on:
   pull_request:
     branches: [dev, main]
-    paths:
-      - 'infra/**'
-      - 'modules/**'
 
 permissions:
   id-token: write
@@ -44,17 +41,22 @@ jobs:
         run: terraform fmt -recursive
 
   tflint:
-      name: Lint
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v4
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-        - name: tflint
-          uses: terraform-linters/setup-tflint@v4
+      - name: Setup tflint
+        uses: terraform-linters/setup-tflint@v4
 
-        - name: Run tflint
-          run: tflint --chdir=infra
+      - name: Init tflint
+        run: tflint --init
+
+      - name: Run tflint
+        run: |
+          tflint --chdir=infra --config=$GITHUB_WORKSPACE/.tflint.hcl
+          tflint --chdir=modules --recursive --config=$GITHUB_WORKSPACE/.tflint.hcl
 
   gitleaks:
       name: Secrets
@@ -71,28 +73,17 @@ jobs:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
-  checkov:
-    name: Checkov
+  scan:
+    name: Security Scan
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: checkov
-        uses: bridgecrewio/checkov-action@v12
+      - name: Trivy IaC Scan
+        uses: aquasecurity/trivy-action@master
         with:
-          directory: infra
-          soft_fail: true
-
-  tfsec:
-    name: tfsec
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: tfsec
-        uses: aquasecurity/tfsec-action@v1.0.0
-        with:
-          working_directory: infra
-          soft_fail: true
+          scan-type: 'config'
+          scan-ref: 'infra'
+          severity: 'MEDIUM,HIGH,CRITICAL'
+          exit-code: '1'

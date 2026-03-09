@@ -54,7 +54,14 @@ jobs:
           TF_VAR_aws_region: ${{ vars.TF_VAR_aws_region }}
           TF_VAR_aws_account_id: ${{ secrets.TF_VAR_aws_account_id }}
         id: plan
-        run: terraform plan -input=false -out=dev.tfplan > /dev/null
+        run: terraform plan -input=false -out=dev.tfplan 2>&1 | tee dev_plan.log > /dev/null
+
+      - name: Upload Plan Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: plan-log
+          path: infra/dev_plan.log
 
       - name: Terraform Apply
         working-directory: infra
@@ -63,12 +70,19 @@ jobs:
           TF_VAR_project_name: ${{ vars.TF_VAR_project_name }}
           TF_VAR_aws_region: ${{ vars.TF_VAR_aws_region }}
           TF_VAR_aws_account_id: ${{ secrets.TF_VAR_aws_account_id }}
-        run: terraform apply -auto-approve dev.tfplan > /dev/null
+        run: terraform apply -auto-approve dev.tfplan 2>&1 | tee dev_apply.log > /dev/null
+
+      - name: Upload Apply Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfapply-log
+          path: infra/dev_apply.log
 
       - name: Cleanup sensitive files
         if: always()
         working-directory: infra
-        run: rm -f prod.tfplan
+        run: rm -f dev.tfplan dev_apply.log dev_plan.log
 
   apply-prod:
     name: Apply Prod
@@ -117,7 +131,14 @@ jobs:
           TF_VAR_aws_region: ${{ vars.TF_VAR_aws_region }}
           TF_VAR_aws_account_id: ${{ secrets.TF_VAR_aws_account_id }}
         id: plan
-        run: terraform plan -input=false -out=prod.tfplan > /dev/null
+        run: terraform plan -input=false -out=prod.tfplan 2>&1 | tee prod_plan.log > /dev/null
+
+      - name: Upload Plan Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: plan-log
+          path: infra/prod_plan.log
 
       - name: Terraform Apply
         working-directory: infra
@@ -126,9 +147,16 @@ jobs:
           TF_VAR_project_name: ${{ vars.TF_VAR_project_name }}
           TF_VAR_aws_region: ${{ vars.TF_VAR_aws_region }}
           TF_VAR_aws_account_id: ${{ secrets.TF_VAR_aws_account_id }}
-        run: terraform apply -auto-approve prod.tfplan > /dev/null
+        run: terraform apply -auto-approve prod.tfplan 2>&1 | tee prod_apply.log > /dev/null
+
+      - name: Upload Apply Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfapply-log
+          path: infra/prod_apply.log
 
       - name: Cleanup sensitive files
         if: always()
         working-directory: infra
-        run: rm -f prod.tfplan
+        run: rm -f prod.tfplan prod_apply.log prod_plan.log
