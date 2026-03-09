@@ -53,7 +53,7 @@ jobs:
           TF_VAR_aws_region: ${{ vars.TF_VAR_aws_region }}
           TF_VAR_aws_account_id: ${{ secrets.TF_VAR_aws_account_id }}
         id: plan
-        run: terraform plan -input=false -out=dev.tfplan 2>&1 | tee dev_plan.log > /dev/null
+        run: terraform plan -input=false -no-color -out=dev.tfplan 2>&1 | tee dev_plan.log > /dev/null
 
       - name: Upload Plan Log
         if: always()
@@ -136,7 +136,7 @@ jobs:
           TF_VAR_aws_region: ${{ vars.TF_VAR_aws_region }}
           TF_VAR_aws_account_id: ${{ secrets.TF_VAR_aws_account_id }}
         id: plan
-        run: terraform plan -input=false -out=prod.tfplan 2>&1 | tee prod_plan.log > /dev/null
+        run: terraform plan -input=false -no-color -out=prod.tfplan 2>&1 | tee prod_plan.log > /dev/null
 
       - name: Upload Plan Log
         if: always()
