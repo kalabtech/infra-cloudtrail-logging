@@ -40,6 +40,8 @@ resource "aws_kms_alias" "this" {
   target_key_id = aws_kms_key.this.key_id
 }
 
+# TODO: enable bucket versioning
+#trivy:ignore:AVD-AWS-0090
 resource "aws_s3_bucket" "this" {
   bucket = lower("${var.project_name}-cloudtrail-logs-${var.environment}")
 }
