@@ -151,7 +151,7 @@ jobs:
 
       - name: Generate Summary
         working-directory: infra
-        run: python3 ../scripts/tfplan_summary.py > plan_output.txt
+        run: python3 ../scripts/tfplan_summary_ci.py > plan_output.txt
 
       - name: Comment Plan
         uses: actions/github-script@v7

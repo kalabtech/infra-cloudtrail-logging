@@ -54,7 +54,7 @@ jobs:
         uses: terraform-linters/setup-tflint@v4
 
       - name: Init tflint
-        run: tflint --init --chdir=infra
+        run: tflint --init
 
       - name: Run tflint
         run: |
@@ -87,6 +87,6 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'config'
-          scan-ref: '.'
+          scan-ref: 'infra'
           severity: 'MEDIUM,HIGH,CRITICAL'
           exit-code: '1'
