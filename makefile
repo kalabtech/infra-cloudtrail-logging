@@ -130,11 +130,8 @@ check: ## Linting and syntax validation
 
 security: ## Security scan infra and modules
 	@echo "Scanning for vulnerabilities..."
-	@tfsec $(TF_DIR)
-	@tfsec $(MOD_DIR)
-	@echo "tfsec done... next checkov"
-	@checkov -d $(TF_DIR) --quiet
-	@checkov -d $(MOD_DIR) --quiet
+	@trivy config $(TF_DIR)
+	@trivy config $(MOD_DIR)
 
 # =============================================================================
 # PRE-COMMIT

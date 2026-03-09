@@ -71,28 +71,17 @@ jobs:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
-  checkov:
-    name: Checkov
+  scan:
+    name: Security Scan
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: checkov
-        uses: bridgecrewio/checkov-action@v12
+      - name: Trivy IaC Scan
+        uses: aquasecurity/trivy-action@master
         with:
-          directory: infra
-          soft_fail: true
-
-  tfsec:
-    name: tfsec
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: tfsec
-        uses: aquasecurity/tfsec-action@v1.0.0
-        with:
-          working_directory: infra
-          soft_fail: true
+          scan-type: 'config'
+          scan-ref: '.'
+          severity: 'HIGH,CRITICAL'
+          exit-code: '1'
