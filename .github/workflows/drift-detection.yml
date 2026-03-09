@@ -46,7 +46,7 @@ jobs:
 
       - name: Terraform Plan
         working-directory: infra
-        run: terraform plan -input=false -detailed-exitcode > /dev/null 
+        run: terraform plan -input=false -detailed-exitcode > /dev/null
 
       - name: Cleanup
         if: always()
@@ -93,7 +93,7 @@ jobs:
 
       - name: Terraform Plan
         working-directory: infra
-        run: terraform plan -input=false -detailed-exitcode > /dev/null 
+        run: terraform plan -input=false -detailed-exitcode > /dev/null
 
       - name: Cleanup
         if: always()

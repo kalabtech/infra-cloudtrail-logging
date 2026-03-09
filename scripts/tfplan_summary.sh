@@ -31,7 +31,7 @@ printf "\033[31m\n- TO DESTROY\033[0m\n"
 jq -r '[.resource_changes[] | select(.change.actions == ["delete"]) | .address] | to_entries[] | "  \(.key + 1). - \(.value)"' "$TMP_JSON"
 
 printf "\033[35m\n↺ TO REPLACE\033[0m\n"
-jq -r '[.resource_changes[] | select(.change.actions == ["delete","create"]) | .address] | to_entries[] | "  \(.key + 1). ↺ \(.value)"' "$TMP_JSON"
+jq -r '[.resource_changes[] | select(.change.actions == ["delete","create"]) | .address] | to_entries[] | "  \(.key + 1). -/+ \(.value)"' "$TMP_JSON"
 
 printf "\033[1m\n=== COUNT ===\033[0m\n"
 jq -r '

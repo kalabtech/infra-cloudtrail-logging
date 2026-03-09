@@ -23,4 +23,3 @@ The goal is to move the Terraform state file from my local machine to a secure, 
 - [ ] Have I applied the Principle of Least Privilege (IAM)?
 - [ ] Are the resources private by default?
 - [ ] Have I ensured no secrets or keys are committed to the repo?
-

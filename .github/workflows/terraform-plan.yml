@@ -12,8 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     if: github.base_ref == 'dev'
     environment: dev
-    env:
-      TF_VAR_environment: dev
     permissions:
       id-token: write
       contents: read
@@ -49,6 +47,11 @@ jobs:
 
       - name: Terraform Plan
         working-directory: infra
+        env:
+          TF_VAR_environment: ${{ secrets.TF_VAR_environment }}
+          TF_VAR_project_name: ${{ secrets.TF_VAR_project_name }}
+          TF_VAR_aws_region: ${{ secrets.TF_VAR_aws_region }}
+          TF_VAR_aws_account_id: ${{ secrets.TF_VAR_aws_account_id }}
         id: plan
         run: terraform plan -input=false -out=dev.tfplan > /dev/null
 
@@ -120,6 +123,11 @@ jobs:
 
       - name: Terraform Plan
         working-directory: infra
+        env:
+          TF_VAR_environment: ${{ vars.TF_VAR_environment }}
+          TF_VAR_project_name: ${{ vars.TF_VAR_project_name }}
+          TF_VAR_aws_region: ${{ vars.TF_VAR_aws_region }}
+          TF_VAR_aws_account_id: ${{ secrets.TF_VAR_aws_account_id }}
         id: plan
         run: terraform plan -input=false -out=prod.tfplan > /dev/null
 
