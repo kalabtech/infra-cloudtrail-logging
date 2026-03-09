@@ -76,12 +76,32 @@ jobs:
           script: |
             const fs = require('fs');
             const plan = fs.readFileSync('infra/plan_output.txt', 'utf8');
-            github.rest.issues.createComment({
+            const body = `<details>\n<summary>Terraform Plan - dev</summary>\n\n\`\`\`text\n${plan}\n\`\`\`\n</details>`;
+            const marker = '<!-- terraform-plan-dev -->';
+
+            const comments = await github.rest.issues.listComments({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `<details>\n<summary>Terraform Plan - dev</summary>\n\n\`\`\`text\n${plan}\n\`\`\`\n</details>`
-            })
+            });
+
+            const existing = comments.data.find(c => c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                comment_id: existing.id,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: marker + '\n' + body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: marker + '\n' + body
+              });
+            }
 
       - name: Cleanup sensitive files
         if: always()
