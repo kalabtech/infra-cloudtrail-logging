@@ -12,6 +12,6 @@ FROM cloudtrail_logs
 WHERE eventname = 'ConsoleLogin'
 AND errorcode = 'Failed'
     AND timestamp >= date_format(current_date - interval '3' month, '%Y/%m/%d')
-    AND timestamp <= date_format(current_date, '%Y/%m/%d')ORDER BY eventtime DESC
+    AND timestamp <= date_format(current_date, '%Y/%m/%d')
 ORDER BY eventtime DESC
 LIMIT 100;
