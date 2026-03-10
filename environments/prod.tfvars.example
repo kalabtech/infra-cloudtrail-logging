@@ -1,0 +1,8 @@
+# environments/prod.tfvars.example
+# Copy to prod.tfvars and fill in your values
+
+environment    = "Prod"         # NOTE: using capitalized to have capitalized tags.
+project_name   = "your-project-name"
+aws_region     = "us-east-1"
+aws_profile    = "your-aws-profile"
+aws_account_id = "123456789012"    # Your AWS account ID — do not commit real values
