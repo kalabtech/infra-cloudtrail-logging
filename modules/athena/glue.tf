@@ -33,7 +33,7 @@ resource "aws_glue_catalog_table" "this" {
     output_format = "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat"
 
     ser_de_info {
-      serialization_library = "com.amazon.emr.hive.serde.CloudTrailSerde"
+      serialization_library = "org.apache.hive.hcatalog.data.JsonSerDe"
     }
 
     columns {
@@ -42,7 +42,7 @@ resource "aws_glue_catalog_table" "this" {
     }
     columns {
       name = "useridentity"
-      type = "struct<type:string,principalid:string,arn:string,accountid:string,sessioncontext:struct<attributes:struct<mfaauthenticated:string,creationdate:string>,sessionissuer:struct<type:string,principalid:string,arn:string,accountid:string,username:string>>>"
+      type = "struct<type:string,principalid:string,arn:string,accountid:string,invokedby:string,accesskeyid:string,username:string,onbehalfof:struct<userid:string,identitystorearn:string>,sessioncontext:struct<attributes:struct<mfaauthenticated:string,creationdate:string>,sessionissuer:struct<type:string,principalid:string,arn:string,accountid:string,username:string>,ec2roledelivery:string,webidfederationdata:struct<federatedprovider:string,attributes:map<string,string>>>>"
     }
     columns {
       name = "eventtime"
@@ -99,6 +99,58 @@ resource "aws_glue_catalog_table" "this" {
     columns {
       name = "recipientaccountid"
       type = "string"
+    }
+    columns {
+      name = "additionaleventdata"
+      type = "string"
+    }
+    columns {
+      name = "resources"
+      type = "array<struct<arn:string,accountid:string,type:string>>"
+    }
+    columns {
+      name = "apiversion"
+      type = "string"
+    }
+    columns {
+      name = "readonly"
+      type = "string"
+    }
+    columns {
+      name = "serviceeventdetails"
+      type = "string"
+    }
+    columns {
+      name = "sharedeventid"
+      type = "string"
+    }
+    columns {
+      name = "vpcendpointid"
+      type = "string"
+    }
+    columns {
+      name = "vpcendpointaccountid"
+      type = "string"
+    }
+    columns {
+      name = "eventcategory"
+      type = "string"
+    }
+    columns {
+      name = "addendum"
+      type = "struct<reason:string,updatedfields:string,originalrequestid:string,originaleventid:string>"
+    }
+    columns {
+      name = "sessioncredentialfromconsole"
+      type = "string"
+    }
+    columns {
+      name = "edgedevicedetails"
+      type = "string"
+    }
+    columns {
+      name = "tlsdetails"
+      type = "struct<tlsversion:string,ciphersuite:string,clientprovidedhostheader:string>"
     }
   }
 
