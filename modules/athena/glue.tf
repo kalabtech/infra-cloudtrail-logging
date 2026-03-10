@@ -33,7 +33,7 @@ resource "aws_glue_catalog_table" "this" {
     output_format = "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat"
 
     ser_de_info {
-      serialization_library = "com.amazon.emr.hive.serde.CloudTrailSerde"
+      serialization_library = "org.apache.hive.hcatalog.data.JsonSerDe"
     }
 
     columns {
