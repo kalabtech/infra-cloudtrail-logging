@@ -22,7 +22,7 @@ WHERE eventsource = 'iam.amazonaws.com'
       'CreateAccessKey',
       'DeleteAccessKey'
   )
-  AND timestamp BETWEEN date_format(current_date - interval '3' month, '%Y/%m/%d')
-                    AND date_format(current_date, '%Y/%m/%d')
+    AND timestamp >= date_format(current_date - interval '3' month, '%Y/%m/%d')
+    AND timestamp <= date_format(current_date, '%Y/%m/%d')
 ORDER BY eventtime DESC
 LIMIT 100;
