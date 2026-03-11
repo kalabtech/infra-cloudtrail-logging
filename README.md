@@ -1,29 +1,29 @@
 # infra-cloudtrail-logging
 
-> Terraform-based AWS audit logging infrastructure for security monitoring and forensic analysis.
-> Captures all API activity via CloudTrail, stores encrypted logs in S3, and enables SQL-based investigation through Athena with partition projection for cost-efficient querying.
+> Terraform infrastructure to capture and investigate AWS API activity.
+> CloudTrail logs land in KMS-encrypted S3, queryable via Athena with partition projection to avoid full bucket scans.
 
 ## Architecture
 <img src="docs/architecture/infra-cloudtrail-logging.png" width="800"/>
 
 ## Features
-- API activity capture via CloudTrail (single-region)
-- KMS-encrypted S3 storage with lifecycle policies (Glacier 30d / Delete 90d)
-- Athena querying via static Glue Data Catalog (partition projection)
-- Pre-built security SQL queries for incident investigation
+- Captures all AWS API activity via CloudTrail (single-region)
+- Stores logs in KMS-encrypted S3 with lifecycle policies (Glacier 30d / Delete 90d)
+- Query logs with Athena using a static Glue table and partition projection to keep low costs
+- Includes 6 ready-to-use SQL queries for common security investigations
 
 ## Stack
 - **IaC:** Terraform
 - **Cloud:** AWS
-  - CloudTrail — API activity logging
-  - KMS — encryption at rest
-  - S3 — log storage with lifecycle policies
-  - Glue Data Catalog — static table schema for CloudTrail logs
-  - Athena — serverless SQL querying
-  - EventBridge — real-time event detection *(v1.1)*
-  - SNS — alerting and notifications *(v1.1)*
+  - CloudTrail — track all API activity
+  - KMS — keeps logs encrypted in S3
+  - S3 — stores logs with lifecycle policies
+  - Glue Data Catalog — defines the schema for CloudTrail logs
+  - Athena — runs SQL queries directly on S3
+  - EventBridge — detects security events in real time *(v1.1)*
+  - SNS — sends alerts when events are detected *(v1.1)*
 - **CI/CD:** GitHub Actions
-- **Secret management:** GitHub Secrets + Variables
+- **Secrets:** GitHub Secrets + Variables
 
 ## Repository Structure
 ```
@@ -46,11 +46,12 @@ infra-cloudtrail-logging/
 - AWS CLI installed and configured with a named profile
 - Copy and fill in your values:
   - `environments/dev.tfvars.example` -> `environments/dev.tfvars`
-- *(Optional)* S3 remote backend — see [infra-backend](https://github.com/kalabtech/infra-backend)
+- *(Optional)* S3 remote backend to use with makefile — see [infra-backend](https://github.com/kalabtech/infra-backend)
+
   - `backends/dev.hcl.example` -> `backends/dev.hcl`
   - `backends/prod.hcl.example` -> `backends/prod.hcl`
 
-## ## Usage
+## Usage
 
 ### Without remote backend (local state)
 ```bash
@@ -58,19 +59,19 @@ terraform -chdir=infra init
 terraform -chdir=infra plan -var-file=../environments/dev.tfvars
 terraform -chdir=infra apply -var-file=../environments/dev.tfvars
 ```
-### With remote backend and makefile
+### With remote backend (makefile)
 ```bash
 make init ENV=dev
 make plan ENV=dev
 make apply ENV=dev
 ```
 
-## Design Decisions
-- **KMS + S3 in single module** — KMS is scoped exclusively to this bucket with no reuse elsewhere. Merging both reduces complexity without sacrificing separation of concerns.
-- **Static Glue table over Crawler** — CloudTrail schema is well-known and never changes. A static table avoids Crawler execution costs and reduces operational complexity.
-- **Partition projection** — eliminates full bucket scans on every Athena query by computing S3 paths directly from date partitions.
-- **Single-region trail** — cost optimization for demo purposes. Multi-region coverage recommended for production workloads.
-- **No hardcoded values** — sensitive config (account ID, credentials) stored in GitHub Secrets. Non-sensitive config (region, environment) in GitHub Variables.
+## Design decisions
+- **KMS + S3 in single module** — KMS is only used for this bucket, no reuse case. Keeping them together reduces complexity without losing clarity.
+- **Static Glue table over Crawler** — CloudTrail schema doesn't change, so a Crawler adds cost for no benefit.
+- **Partition projection** — Athena computes S3 paths from date partitions directly, no full bucket scans.
+- **Single-region trail** — cost optimization. Multi-region recommended for production.
+- **No hardcoded values** — account ID and credentials in GitHub Secrets, region and environment in GitHub Variables.
 
 ## Security Queries
 Predefined queries available in Athena under **Saved Queries**. All queries cover the last 90 days and use partition projection for cost-efficient scanning.
