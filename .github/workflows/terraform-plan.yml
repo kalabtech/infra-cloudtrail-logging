@@ -1,150 +1,192 @@
-# name: Terraform Plan
+name: Terraform Plan
 
-# on:
-#   pull_request:
-#     branches:
-#       - dev
-#       - main
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
 
-# jobs:
-#   plan-dev:
-#     name: Plan Dev
-#     runs-on: ubuntu-latest
-#     if: github.base_ref == 'dev'
-#     environment: dev
-#     env:
-#       TF_VAR_environment: dev
-#     permissions:
-#       id-token: write
-#       contents: read
-#       pull-requests: write
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v4
+jobs:
+  plan-dev:
+    name: Plan Dev
+    runs-on: ubuntu-latest
+    if: github.base_ref == 'dev'
+    environment: dev
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-#       - name: Configure AWS Credentials
-#         uses: aws-actions/configure-aws-credentials@v4
-#         with:
-#           role-to-assume: ${{ secrets.AWS_DEV_ROLE_GENERAL }}
-#           aws-region: ${{ secrets.AWS_REGION }}
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEV_ROLE_GENERAL }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-#       - name: Setup Terraform
-#         uses: hashicorp/setup-terraform@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
 
-#       - name: Mask AWS Account ID
-#         run: |
-#           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-#           echo "::add-mask::$ACCOUNT_ID"
+      - name: Mask AWS Account ID
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "::add-mask::$ACCOUNT_ID"
 
-#       - name: Terraform Init
-#         working-directory: infra
-#         env:
-#           TF_CLI_ARGS_init: >-
-#             -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}"
-#             -backend-config="key=${{ secrets.TF_STATE_KEY_DEV }}"
-#             -backend-config="region=${{ secrets.AWS_REGION }}"
-#             -backend-config="kms_key_id=${{ secrets.TF_STATE_KMS_KEY }}"
-#             -backend-config="use_lockfile=true"
-#         run: terraform init > /dev/null
+      - name: Terraform Init
+        working-directory: infra
+        env:
+          TF_CLI_ARGS_init: >-
+            -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}"
+            -backend-config="key=${{ secrets.TF_STATE_KEY_DEV }}"
+            -backend-config="region=${{ secrets.AWS_REGION }}"
+            -backend-config="kms_key_id=${{ secrets.TF_STATE_KMS_KEY }}"
+            -backend-config="use_lockfile=true"
+        run: terraform init > /dev/null
 
-#       - name: Terraform Plan
-#         working-directory: infra
-#         id: plan
-#         run: terraform plan -input=false -out=dev.tfplan > /dev/null
+      - name: Terraform Plan
+        working-directory: infra
+        env:
+          TF_VAR_environment: ${{ vars.TF_VAR_environment }}
+          TF_VAR_project_name: ${{ vars.TF_VAR_project_name }}
+          TF_VAR_aws_region: ${{ vars.TF_VAR_aws_region }}
+          TF_VAR_aws_account_id: ${{ secrets.TF_VAR_aws_account_id }}
+        id: plan
+        run: terraform plan -input=false -no-color -out=dev.tfplan 2>&1 | tee dev_plan.log > /dev/null
 
-#       - name: Convert plan to JSON
-#         working-directory: infra
-#         run: terraform show -json dev.tfplan > tfplan.json
+      - name: Upload Plan Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: plan-log
+          path: infra/dev_plan.log
 
-#       - name: Generate Summary
-#         working-directory: infra
-#         run: python3 ../scripts/tfplan_summary.py > plan_output.txt
+      - name: Convert plan to JSON
+        working-directory: infra
+        run: terraform show -json dev.tfplan > tfplan.json
 
-#       - name: Comment Plan
-#         uses: actions/github-script@v7
-#         with:
-#           script: |
-#             const fs = require('fs');
-#             const plan = fs.readFileSync('infra/plan_output.txt', 'utf8');
-#             github.rest.issues.createComment({
-#               issue_number: context.issue.number,
-#               owner: context.repo.owner,
-#               repo: context.repo.repo,
-#               body: `<details>\n<summary>Terraform Plan - dev</summary>\n\n\`\`\`text\n${plan}\n\`\`\`\n</details>`
-#             })
+      - name: Generate Summary
+        working-directory: infra
+        run: python3 ../scripts/tfplan_summary_ci.py > plan_output.txt
 
-#       - name: Cleanup sensitive files
-#         if: always()
-#         working-directory: infra
-#         run: rm -f dev.tfplan tfplan.json plan_output.txt
+      - name: Comment Plan
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const plan = fs.readFileSync('infra/plan_output.txt', 'utf8');
+            const body = `<details>\n<summary>Terraform Plan - dev</summary>\n\n\`\`\`text\n${plan}\n\`\`\`\n</details>`;
+            const marker = '<!-- terraform-plan-dev -->';
 
-#   plan-prod:
-#     name: Plan Prod
-#     runs-on: ubuntu-latest
-#     if: github.base_ref == 'main'
-#     environment: prod
-#     env:
-#       TF_VAR_environment: prod
-#     permissions:
-#       id-token: write
-#       contents: read
-#       pull-requests: write
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v4
+            const comments = await github.rest.issues.listComments({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
 
-#       - name: Configure AWS Credentials
-#         uses: aws-actions/configure-aws-credentials@v4
-#         with:
-#           role-to-assume: ${{ secrets.AWS_PROD_ROLE_GENERAL }}
-#           aws-region: ${{ secrets.AWS_REGION }}
+            const existing = comments.data.find(c => c.body.includes(marker));
 
-#       - name: Setup Terraform
-#         uses: hashicorp/setup-terraform@v3
+            if (existing) {
+              await github.rest.issues.updateComment({
+                comment_id: existing.id,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: marker + '\n' + body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: marker + '\n' + body
+              });
+            }
 
-#       - name: Mask AWS Account ID
-#         run: |
-#           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-#           echo "::add-mask::$ACCOUNT_ID"
+      - name: Cleanup sensitive files
+        if: always()
+        working-directory: infra
+        run: rm -f dev.tfplan tfplan.json plan_output.txt dev_plan.log
 
-#       - name: Terraform Init
-#         working-directory: infra
-#         env:
-#           TF_CLI_ARGS_init: >-
-#             -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}"
-#             -backend-config="key=${{ secrets.TF_STATE_KEY_PROD }}"
-#             -backend-config="region=${{ secrets.AWS_REGION }}"
-#             -backend-config="kms_key_id=${{ secrets.TF_STATE_KMS_KEY }}"
-#             -backend-config="use_lockfile=true"
-#         run: terraform init > /dev/null
+  plan-prod:
+    name: Plan Prod
+    runs-on: ubuntu-latest
+    if: github.base_ref == 'main'
+    environment: prod
+    env:
+      TF_VAR_environment: prod
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-#       - name: Terraform Plan
-#         working-directory: infra
-#         id: plan
-#         run: terraform plan -input=false -out=prod.tfplan > /dev/null
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_PROD_ROLE_GENERAL }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-#       - name: Convert plan to JSON
-#         working-directory: infra
-#         run: terraform show -json prod.tfplan > tfplan.json
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
 
-#       - name: Generate Summary
-#         working-directory: infra
-#         run: python3 ../scripts/tfplan_summary.py > plan_output.txt
+      - name: Mask AWS Account ID
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "::add-mask::$ACCOUNT_ID"
 
-#       - name: Comment Plan
-#         uses: actions/github-script@v7
-#         with:
-#           script: |
-#             const fs = require('fs');
-#             const plan = fs.readFileSync('infra/plan_output.txt', 'utf8');
-#             github.rest.issues.createComment({
-#               issue_number: context.issue.number,
-#               owner: context.repo.owner,
-#               repo: context.repo.repo,
-#               body: `<details>\n<summary>Terraform Plan - Prod</summary>\n\n\`\`\`text\n${plan}\n\`\`\`\n</details>`
-#             })
+      - name: Terraform Init
+        working-directory: infra
+        env:
+          TF_CLI_ARGS_init: >-
+            -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}"
+            -backend-config="key=${{ secrets.TF_STATE_KEY_PROD }}"
+            -backend-config="region=${{ secrets.AWS_REGION }}"
+            -backend-config="kms_key_id=${{ secrets.TF_STATE_KMS_KEY }}"
+            -backend-config="use_lockfile=true"
+        run: terraform init > /dev/null
 
-#       - name: Cleanup sensitive files
-#         if: always()
-#         working-directory: infra
-#         run: rm -f prod.tfplan tfplan.json plan_output.txt
+      - name: Terraform Plan
+        working-directory: infra
+        env:
+          TF_VAR_environment: ${{ vars.TF_VAR_environment }}
+          TF_VAR_project_name: ${{ vars.TF_VAR_project_name }}
+          TF_VAR_aws_region: ${{ vars.TF_VAR_aws_region }}
+          TF_VAR_aws_account_id: ${{ secrets.TF_VAR_aws_account_id }}
+        id: plan
+        run: terraform plan -input=false -no-color -out=prod.tfplan 2>&1 | tee prod_plan.log > /dev/null
+
+      - name: Upload Plan Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-log
+          path: infra/prod_plan.log
+
+      - name: Convert plan to JSON
+        working-directory: infra
+        run: terraform show -json prod.tfplan > tfplan.json
+
+      - name: Generate Summary
+        working-directory: infra
+        run: python3 ../scripts/tfplan_summary_ci.py > plan_output.txt
+
+      - name: Comment Plan
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const plan = fs.readFileSync('infra/plan_output.txt', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `<details>\n<summary>Terraform Plan - Prod</summary>\n\n\`\`\`text\n${plan}\n\`\`\`\n</details>`
+            })
+
+      - name: Cleanup sensitive files
+        if: always()
+        working-directory: infra
+        run: rm -f prod.tfplan tfplan.json plan_output.txt prod_plan.log

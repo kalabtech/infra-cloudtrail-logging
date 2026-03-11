@@ -1,0 +1,10 @@
+# backends/dev.hcl.example
+# Copy to dev.hcl and fill in your values
+# Sensitive values are stored in GitHub Environment secrets (environment: dev)
+
+bucket         = "your-terraform-state-bucket"
+key            = "cloudtrail-logging/dev/terraform.tfstate"
+region         = "us-east-1"
+encrypt        = true
+use_lockfile   = true
+kms_key_id     = "your-kms-key-arn"

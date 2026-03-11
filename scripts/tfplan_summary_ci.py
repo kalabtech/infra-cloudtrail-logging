@@ -17,7 +17,7 @@ creates, updates, replaces, deletes = [], [], [], []
 
 for rc in plan.get("resource_changes", []):
     actions = rc["change"]["actions"]
-    
+
     # Include module path if present
     module = rc.get("module_address", "")
     resource = f'{module}.{rc["type"]}.{rc["name"]}' if module else f'{rc["type"]}.{rc["name"]}'

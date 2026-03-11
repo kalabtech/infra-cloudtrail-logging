@@ -10,7 +10,6 @@
 .tflint.d/
 
 backend.hcl
-backends/*
 dev.hcl
 prod.hcl
 
